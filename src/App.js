@@ -1,26 +1,39 @@
 import React from 'react';
-import logo from './logo.svg';
+import Chessboard from 'chessboardjsx';
+import axios from 'axios';
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+function timeout(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export default App;
+
+export default class App extends React.Component{
+  state = {
+    boards : {},
+    board : "start"
+  }
+
+  async componentDidMount() {
+    const response = await axios.get(`http://localhost:5000/`)
+    const boards = await response.data;
+    
+    for (var board in boards){
+      if (boards.hasOwnProperty(board)){
+        console.log(boards[board]);
+        await timeout(500); 
+        this.setState(state => ({ board : boards[board] }));
+      }
+    } 
+
+  }
+
+  render(){
+      return (
+        <div id="myBoard">
+          <Chessboard position={this.state.board}/>
+        </div>
+      );
+  }
+}
