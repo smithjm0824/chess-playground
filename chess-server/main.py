@@ -27,14 +27,19 @@ class Game:
         self.id = 0
         self.moves = 0
 
-    def play_game(self, player_1, player_2):
-        WHITE, BLACK = chess.WHITE, chess.BLACK
+    def play_game(self, player_1, player_2, time_limit=5000):
+        WHITE = chess.WHITE
+        init_time = lambda: int(round(time.time() * 1000))
+
         try:
             while not self.board.is_game_over(claim_draw=True):
+                curr_time = init_time()
+                time_left = lambda : time_limit - (init_time() - curr_time)
+
                 if self.board.turn == WHITE:
-                    move = player_1(self.board, True)
+                    move = player_1(self.board, True, time_left)
                 else:
-                    move = player_2(self.board)
+                    move = player_2(self.board, time_left)
                 self.board.push_uci(move)
                 self.publish_board_state()
 
@@ -50,6 +55,9 @@ class Game:
 #   def cache_results(self):
 
 # TODO: Setup Minimax w/ AlphaBeta Pruning
+# TODO: Implement Move Ordering
+# TODO: Implement a Book of Opening Moves
+# TODO: Implement a Book of EndGame Moves
 
 if __name__ == '__main__':
     app.run()

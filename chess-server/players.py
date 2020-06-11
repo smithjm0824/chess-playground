@@ -2,14 +2,18 @@ import random
 import chess
 import time
 
+
 class Player:
+    
     def __init__(self):
         pass
 
-    def random_player(self, board):
+
+    def random_player(self, board, time_left):
         legal_moves = board.legal_moves
         random_move = random.choice(list(legal_moves))
         return random_move.uci()
+
 
     def evaluate(self, board: chess.Board, player: bool): 
         turn = board.turn
@@ -27,13 +31,12 @@ class Player:
                 material_sum += weights[piece.symbol().lower()] * color_weight
         return material_sum
 
-    def minimax(self, board: chess.Board, depth: int, start_time: float, player: bool):
-        # time_left = (time.time() - start_time) * 1000
 
-        # if time_left < 10:
-        #     return None, None
+    def minimax(self, board: chess.Board, depth: int, player: bool, time_left):
+        if time_left() < 10:
+            raise Exception("Minimax timed-out. Returning best move from previously completed depth.")
 
-        if depth == 0:
+        if depth == -1:
             return self.evaluate(board, player), None
 
         legal_moves = board.legal_moves
@@ -43,10 +46,10 @@ class Player:
         best_move = None
 
         for move in legal_moves:
-            board.push(move)
-            score, _ = self.minimax(board, depth - 1, start_time, not player)
-            # if score is None:
-            #     # return best move from the previous depth
+            tmp_board = board.copy()
+            tmp_board.push(move)
+            score, _ = self.minimax(tmp_board, depth - 1, player, time_left)
+
             if (turn == player): # max
                 if score > best_score:
                     best_score = score
@@ -55,9 +58,18 @@ class Player:
                 if score < best_score:
                     best_score = score
                     best_move = move
-            board.pop()
         return best_score, best_move
 
-    def minimax_player(self, board, player):
-        print("move recorded")
-        return self.minimax(board, 3, time.time(), player)[1].uci()
+    def minimax_player(self, board, player, time_left):
+        best_moves = {}
+        depth = 0
+        
+        while True:
+            try:
+                best_moves[depth] = self.minimax(board, depth, player, time_left)[1].uci()
+                depth += 1
+            except Exception:
+                return best_moves[depth - 1]
+
+        return best_moves[depth]
+
